@@ -90,12 +90,14 @@ if [[ $abort_flag -lt 1 ]]; then
   fi
 fi
 
+# Ensure the target directory exists
+$ssh $target "mkdir -p ${path}/${hostname}"
+
 # Perform the backup if possible
 while read set_name && [[ $abort_flag -lt 1 ]]; do
   echo "Storing ${set_name}@${snap_name}"
   $zfs send -R ${set_name}@${snap_name} \
-    | $xz \
-    | $ssh $target "cat - > ${path}/${hostname}/${set_name}_${snap_name}.img.xz"
+    | $ssh $target "cat - > ${path}/${hostname}/${set_name}_${snap_name}.img"
 done < <(get_datasets)
  
 exit $abort_flag
