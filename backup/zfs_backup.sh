@@ -6,8 +6,8 @@
 # via SSH or another local disk
 
 # Commands -----------------------------------------
-XZ=$(which xz)
-ZFS=$(which zfs)
+XZ=$(command -v xz)
+ZFS=$(command -v zfs)
 
 # Functions ----------------------------------------
 # Validate environment
@@ -110,6 +110,11 @@ while getopts "z:p:f:hc" OPT; do
                 "${OPTARG}" "${USAGE}" >&2
             ABORT_FLAG=1
             ;;
+        *)
+            printf "error: invalid option \'%s\'\n" \
+                "${OPTARG}" >&2
+            ABORT_FLAG=1
+            ;;
     esac
 done
 
@@ -127,7 +132,8 @@ if [[ $ABORT_FLAG -lt 1 ]]; then
     fi
   
     # Ensure the destination directory exists
-    if [[ ! -z "${TARGET_HOST}" ]]; then
+    if [[ -n "${TARGET_HOST}" ]]; then
+        # shellcheck disable=SC2029
         ssh "${TARGET_HOST}" "mkdir -p ${TARGET_PATH}/${HOSTNAME}"
     else
         mkdir -p "${TARGET_PATH}/${HOSTNAME}"
@@ -141,7 +147,7 @@ while read -r SET_NAME && [[ $ABORT_FLAG -lt 1 ]]; do
     SET_PREFIX=${SET_NAME//\//_}
 
     # Build the target command
-    if [[ ! -z "${TARGET_HOST}" ]]; then
+    if [[ -n "${TARGET_HOST}" ]]; then
         TARGET_CMD="| ssh \"${TARGET_HOST}\" \"cat - > ${TARGET_PATH}/${HOSTNAME}/${SET_PREFIX}_${SNAP_NAME}.img\""
     else
         TARGET_CMD="> \"${TARGET_PATH}/${HOSTNAME}/${SET_PREFIX}_${SNAP_NAME}.img\""
